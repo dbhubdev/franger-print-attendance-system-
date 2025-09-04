@@ -9,7 +9,8 @@ class Attendance extends Model
      protected $fillable = [
         'uid',
         'emp_id',
-        'punch_time'
+        'punch_time',
+        'device_ip',
     ];
 
     protected $dates = ['punch_time'];

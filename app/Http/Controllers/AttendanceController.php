@@ -10,28 +10,55 @@ class AttendanceController extends Controller
 {
     public function fetch()
     {
-        $zk = new ZKTeco('10.0.1.107', 4370);
+        // $zk = new ZKTeco('10.0.1.107', 4370);
 
-        if ($zk->connect()) {
-            $attendance = $zk->getAttendance();
+        // if ($zk->connect()) {
+        //     $attendance = $zk->getAttendance();
 
-            foreach ($attendance as $att) {
-                Attendance::updateOrCreate(
-                    [
-                        'uid' => $att['uid'],
-                        'punch_time' => $att['timestamp']
-                    ],
-                    [
-                        'emp_id' => $att['id']
-                    ]
-                );
+        //     foreach ($attendance as $att) {
+        //         Attendance::updateOrCreate(
+        //             [
+        //                 'uid' => $att['uid'],
+        //                 'punch_time' => $att['timestamp']
+        //             ],
+        //             [
+        //                 'emp_id' => $att['id']
+        //             ]
+        //         );
+        //     }
+
+        //     $zk->disconnect();
+        //     return response()->json(['message' => '✅ Attendance synced']);
+        // }
+
+        // return response()->json(['message' => '❌ Device connection failed']);
+
+        while (true) {
+            $zk = new ZKTeco('10.0.1.107', 4370);
+
+            if ($zk->connect()) {
+                $attendance = $zk->getAttendance();
+
+                foreach ($attendance as $att) {
+                    Attendance::updateOrCreate(
+                        [
+                            'uid' => $att['uid'],
+                            'punch_time' => $att['timestamp']
+                        ],
+                        [
+                            'emp_id' => $att['id']
+                        ]
+                    );
+                }
+
+                $zk->disconnect();
+                echo "✅ Attendance synced\n";
+            } else {
+                echo "❌ Device connection failed\n";
             }
 
-            $zk->disconnect();
-            return response()->json(['message' => '✅ Attendance synced']);
+            sleep(5); // wait 5 seconds
         }
-
-        return response()->json(['message' => '❌ Device connection failed']);
     }
 
     public function index()
@@ -43,5 +70,4 @@ class AttendanceController extends Controller
         $attendances = Attendance::latest()->paginate(20);
         return view('attendance.index', compact('attendances'));
     }
-
 }
